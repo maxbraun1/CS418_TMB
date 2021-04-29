@@ -229,8 +229,44 @@ class tmbDAO:
 
         return -1
 
-    def read_ship_positions_in_tile(self, tile_id):
+    # Attempting to make the insert message work via sql
+    def insert_message(self, message):
+        self.cnx = None
 
+        array = json.loads(message)
+        msgType = array['MsgType']
+
+        try:
+            print("Connecting to database ", "... ", end='')
+            self.cnx = mysql.connector.connect(user=USER, password=PASSWORD, database='AisTestData', host='127.0.0.1',
+                                               port=3306)
+            print("OK")
+
+            cursor = self.cnx.cursor()
+            if msgType == "position_report":
+                query = """
+                        INSERT INTO TABLE POSITION_REPORT (NavigationalStatus, Longitude, Latitude, RoT, SoG, CoG, Heading)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        
+                        """
+                cursor.execute(query % message)
+            elif msgType == "static_data":
+                query = """
+                        INSERT 
+                        """
+                cursor.execute(query % message)
+
+            result = cursor.fetchall()
+            self.cnx.commit()
+            cursor.close()
+            self.cnx.close()
+            print("Connection closed")
+            return result
+
+        except mysql.connector.Error as error:
+            print(error)
+
+    def read_ship_positions_in_tile(self, tile_id):
         pass
 
     def match_port(self, port_name):
@@ -289,7 +325,7 @@ class tmbTest(unittest.TestCase):
         Checks to see if a single entry was added
         """
         tmb = tmbDAO(True)
-        count = tmb.insert_new_message(self.batch2)
+        count = tmb.insert_new_message(self.testbatch)
         self.assertTrue(type(count) is int and count >= 0)
 
     batch3 = """[ {\"Timestamp\":\"2020-11-18T00:00:00.000Z\",\"Class\":\"Class A\",\"MMSI\":304858000,\"MsgType\":\"position_report\",\"Position\":{\"type\":\"Point\",\"coordinates\":[55.218332,13.371672]},\"Status\":\"Under way using engine\",\"SoG\":10.8,\"CoG\":94.3,\"Heading\":97},

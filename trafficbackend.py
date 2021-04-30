@@ -76,15 +76,34 @@ class tmbDAO:
                     longitude = array[inserted]['Position']['coordinates'][1]
                     navigational_status = array[inserted]['Status']
 
-                    SoG = array[inserted]['SoG']
-
                     if x.get('RoT'):
                         RoT = array[inserted]['RoT']
+                    elif x.get('RoT') == 0:
+                        RoT = 0
                     else:
                         RoT = None
 
-                    print("[Latitude and Longitude: [{}, {}]\nStatus: {}\nSoG: {}\nRoT: {}]"
-                          .format(latitude, longitude, navigational_status, SoG, RoT))
+                    if x.get('SoG'):
+                        SoG = array[inserted]['SoG']
+                    elif x.get('SoG') == 0:
+                        SoG = 0
+                    else:
+                        SoG = None
+
+                    if x.get('CoG'):
+                        CoG = array[inserted]['CoG']
+                    elif x.get('CoG') == 0:
+                        CoG = 0
+                    else:
+                        CoG = None
+
+                    if x.get('Heading'):
+                        heading = array[inserted]['Heading']
+                    else:
+                        heading = None
+
+                    print("[Latitude and Longitude: [{}, {}]\nStatus: {}\nSoG: {}\nRoT: {}\nCoG: {}\nHeading: {}]"
+                          .format(latitude, longitude, navigational_status, SoG, RoT, CoG, heading))
                     inserted += 1
 
                 elif x['MsgType'] == "static_data":

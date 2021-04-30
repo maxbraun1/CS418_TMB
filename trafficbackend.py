@@ -68,7 +68,6 @@ class tmbDAO:
 
     def insert_batch(self, batch_message):
         inserted = 0
-        temp = []
         try:
             array = json.loads(batch_message)
             for x in array:
@@ -76,8 +75,18 @@ class tmbDAO:
                     latitude = array[inserted]['Position']['coordinates'][0]
                     longitude = array[inserted]['Position']['coordinates'][1]
                     navigational_status = array[inserted]['Status']
-                    print("[Latitude and Longitude: [{}, {}]\nStatus: {}]".format(latitude, longitude, navigational_status))
+
+                    SoG = array[inserted]['SoG']
+
+                    if x.get('RoT'):
+                        RoT = array[inserted]['RoT']
+                    else:
+                        RoT = None
+
+                    print("[Latitude and Longitude: [{}, {}]\nStatus: {}\nSoG: {}\nRoT: {}]"
+                          .format(latitude, longitude, navigational_status, SoG, RoT))
                     inserted += 1
+
                 elif x['MsgType'] == "static_data":
                     print(array[inserted]['Name'])
                     inserted += 1
@@ -87,6 +96,7 @@ class tmbDAO:
             return -1
 
         if self.is_stub:
+            print(inserted)
             return len(array)
 
         return -1

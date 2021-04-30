@@ -67,8 +67,21 @@ class tmbDAO:
         self.is_stub = stub
 
     def insert_batch(self, batch_message):
+        inserted = 0
+        temp = []
         try:
             array = json.loads(batch_message)
+            for x in array:
+                if x['MsgType'] == "position_report":
+                    latitude = array[inserted]['Position']['coordinates'][0]
+                    longitude = array[inserted]['Position']['coordinates'][1]
+                    navigational_status = array[inserted]['Status']
+                    print("[Latitude and Longitude: [{}, {}]\nStatus: {}]".format(latitude, longitude, navigational_status))
+                    inserted += 1
+                elif x['MsgType'] == "static_data":
+                    print(array[inserted]['Name'])
+                    inserted += 1
+
         except Exception as e:
             print(e)
             return -1
@@ -77,6 +90,46 @@ class tmbDAO:
             return len(array)
 
         return -1
+
+    # populate the ais_message table
+    def insert_batch_msg(self, batch):
+        try:
+            array = json.loads(batch)
+            for x in array:
+                # AIS_MESSAGE(
+                # Id mediumint unsigned autoincrement)
+                # Primary key (Id)
+                # shared data listed below
+                # insert into ais_message values (null, 12345, "2020")
+                # Use "cursor.lastrowid" to get the id of the previous row.
+                # In this case, we need the last row id to use as the aismessage_id for position_report/static_data
+                if x['MsgType'] == "position_report":
+                    latitude = 0
+                    longitude = 0
+                    navigational_status = ''
+                    RoT = 0
+                    SoG = 0
+                    CoG = 0
+                    Heading = 0
+                    # insert into position_report value ({cursor.lastrowid}, )
+                    if x['position'] in array:
+                        latitude = x['position'][1][0]
+                        longitude = x['position'][1][1]
+                        print(latitude)
+                        print(longitude)
+
+                elif x['MsgType'] == "static_data":
+                    pass
+
+        except Exception as e:
+            print(e)
+            return -1
+
+        if self.is_stub:
+            return len(array)
+
+        return -1
+
 
     def delete_timestamp(self, current_time, tStamp):
         cTime = datetime.datetime.strptime(current_time, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -315,8 +368,13 @@ class tmbTest(unittest.TestCase):
         Counts number of json strings
         """
         tmb = tmbDAO(True)
-        count = tmb.insert_batch(self.testbatch)
-        self.assertTrue(type(count) is int and count >= 0)
+        count = tmb.insert_batch(self.batch)
+        #self.assertTrue(type(count) is int and count >= 0)
+
+    def test_sql01(self):
+        tmb = tmbDAO(True)
+        count = tmb.insert_batch_msg(self.testbatch)
+        self.assertTrue(type(count) is int and count >=0)
 
     batch2 = """[ {\"Timestamp\":\"2020-11-18T00:00:00.000Z\",\"Class\":\"Class A\",\"MMSI\":304858000,\"MsgType\":\"position_report\",\"Position\":{\"type\":\"Point\",\"coordinates\":[55.218332,13.371672]},\"Status\":\"Under way using engine\",\"SoG\":10.8,\"CoG\":94.3,\"Heading\":97}]"""
 
